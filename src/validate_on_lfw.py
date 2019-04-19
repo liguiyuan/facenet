@@ -48,7 +48,7 @@ def main(args):
         with tf.Session() as sess:
             
             # Read the file containing the pairs used for testing
-            pairs = lfw.read_pairs(os.path.expanduser(args.lfw_pairs))
+            pairs = lfw.read_pairs(os.path.expanduser(args.lfw_pairs))  # ./data/pairs.txt
 
             # Get the paths for the corresponding images
             paths, actual_issame = lfw.get_paths(os.path.expanduser(args.lfw_dir), pairs)
@@ -119,8 +119,8 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
     embeddings = np.zeros((nrof_embeddings, embedding_size*nrof_flips))
     if use_flipped_images:
         # Concatenate embeddings for flipped and non flipped version of the images
-        embeddings[:,:embedding_size] = emb_array[0::2,:]
-        embeddings[:,embedding_size:] = emb_array[1::2,:]
+        embeddings[:,:embedding_size] = emb_array[0::2,:]       # flipped
+        embeddings[:,embedding_size:] = emb_array[1::2,:]       # non flipped
     else:
         embeddings = emb_array
 
@@ -130,7 +130,7 @@ def evaluate(sess, enqueue_op, image_paths_placeholder, labels_placeholder, phas
     print('Accuracy: %2.5f+-%2.5f' % (np.mean(accuracy), np.std(accuracy)))
     print('Validation rate: %2.5f+-%2.5f @ FAR=%2.5f' % (val, val_std, far))
     
-    auc = metrics.auc(fpr, tpr)
+    auc = metrics.auc(fpr, tpr)     # calculate auc by sklearn metrics
     print('Area Under Curve (AUC): %1.3f' % auc)
     eer = brentq(lambda x: 1. - x - interpolate.interp1d(fpr, tpr)(x), 0., 1.)
     print('Equal Error Rate (EER): %1.3f' % eer)

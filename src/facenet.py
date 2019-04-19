@@ -65,15 +65,17 @@ def center_loss(features, label, alfa, nrof_classes):
     """Center loss based on the paper "A Discriminative Feature Learning Approach for Deep Face Recognition"
        (http://ydwen.github.io/papers/WenECCV16.pdf)
     """
-    nrof_features = features.get_shape()[1]
+    nrof_features = features.get_shape()[1]             # 'nrof_features' is CNN output shape
+    
+    # centers means: different class center(it may be a lot of class, different class have different center)
     centers = tf.get_variable('centers', [nrof_classes, nrof_features], dtype=tf.float32,
         initializer=tf.constant_initializer(0), trainable=False)
     label = tf.reshape(label, [-1])
-    centers_batch = tf.gather(centers, label)
-    diff = (1 - alfa) * (centers_batch - features)
-    centers = tf.scatter_sub(centers, label, diff)
+    centers_batch = tf.gather(centers, label)           # base on label, get each class center
+    diff = (1 - alfa) * (centers_batch - features)      # calculate diff between center and features
+    centers = tf.scatter_sub(centers, label, diff)      # update centers
     with tf.control_dependencies([centers]):
-        loss = tf.reduce_mean(tf.square(features - centers_batch))
+        loss = tf.reduce_mean(tf.square(features - centers_batch))  # calculate loss
     return loss, centers
 
 def get_image_paths_and_labels(dataset):
@@ -447,6 +449,7 @@ def calculate_roc(thresholds, embeddings1, embeddings2, actual_issame, nrof_fold
         for threshold_idx, threshold in enumerate(thresholds):
             _, _, acc_train[threshold_idx] = calculate_accuracy(threshold, dist[train_set], actual_issame[train_set])
         best_threshold_index = np.argmax(acc_train)
+        # print('threshold', thresholds[best_threshold_index])
         for threshold_idx, threshold in enumerate(thresholds):
             tprs[fold_idx,threshold_idx], fprs[fold_idx,threshold_idx], _ = calculate_accuracy(threshold, dist[test_set], actual_issame[test_set])
         _, _, accuracy[fold_idx] = calculate_accuracy(thresholds[best_threshold_index], dist[test_set], actual_issame[test_set])
